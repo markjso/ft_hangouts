@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image, Alert, Pressable } from 'react-native';
+import { addContact, connectToDatabase } from '../db/dbCreate';
 
-const ContactForm = ({ addContact, onClose }) => {
+const ContactForm = ({ onClose }) => {
   const [firstName, setFirstName] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     addContact({ firstName, name, nickname, phone, email });
     setFirstName('');
     setName('');
+    setNickname('');
     setPhone('');
     setEmail('');
     onClose();
@@ -75,11 +77,6 @@ const ContactForm = ({ addContact, onClose }) => {
 
 const styles = StyleSheet.create({
 	container: {
-	  position: 'absolute', // To overlay the modal on top of the screen
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
