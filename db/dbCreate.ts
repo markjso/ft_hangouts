@@ -40,6 +40,7 @@ import {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         firstName TEXT,
         name TEXT,
+        nickname TEXT,
         phoneNumber TEXT,
         email TEXT
      )
@@ -84,14 +85,14 @@ import {
   export const addContact = async (db: SQLiteDatabase, contact: Contact) => {
     const insertQuery = `
      INSERT INTO Contacts (firstName, name, nickname, phone, email)
-     VALUES (?, ?, ?, ?)
+     VALUES (?, ?, ?, ?, ?)
    `
     const values = [
       contact.firstName,
       contact.name,
       contact.nickname,
       contact.phone,
-      contact.email
+      contact.email,
     ]
     try {
       return db.executeSql(insertQuery, values)
@@ -123,15 +124,15 @@ import {
   ) => {
     const updateQuery = `
       UPDATE Contacts
-      SET firstName = ?, name = ?, phoneNumber = ?
-      WHERE id = ?
+      SET firstName = ?, name = ?, nickname = ?, phone = ?, email = ?
+      WHERE phone = ?
     `
     const values = [
       updatedContact.firstName,
       updatedContact.name,
       updatedContact.nickname,
-      updatedContact.phoneNumber,
-      updatedContact.id,
+      updatedContact.phone,
+      updatedContact.email,
     ]
     try {
       return db.executeSql(updateQuery, values)
@@ -184,9 +185,9 @@ import {
   export const deleteContact = async (db: SQLiteDatabase, contact: Contact) => {
     const deleteQuery = `
       DELETE FROM Contacts
-      WHERE id = ?
+      WHERE name = ? AND phone = ? and email = ?
     `
-    const values = [contact.id]
+    const values = [contact.name, contact.phone, contact.email]
     try {
       return db.executeSql(deleteQuery, values)
     } catch (error) {
