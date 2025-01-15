@@ -1,26 +1,64 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ContactForm from './AddContact';
 
-const ContactList = ({ navigation }) => {
-  const [contacts, setContacts] = useState([]);
+/**
+ * @typedef {Object} Contact
+ * @property {number} [id]
+ * @property {string} firstName
+ * @property {string} name
+ * @property {string} nickname
+ * @property {string} phone
+ * @property {string} email
+ */
+
+/**
+ * @param {Object} props
+ * @param {Contact[]} props.dbContacts
+ * @param {React.Dispatch<React.SetStateAction<Contact[]>>} props.setdbContacts
+ */
+
+const ContactList = ({ db, dbContacts, setdbContacts }) => {
+  const [contacts, setContacts] = useState([
+    {id: 1, firstName: 'Jane', name: 'Doe', nickname: 'JD', phone: '0444 111 222', email: 'jane@abc.com'},
+    {id: 2, firstName: 'John', name: 'Doe', nickname: 'Johnny', phone: '0444 111 333', email: 'john@abc.com'},
+  ]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
 
   const closeModals = () => {
     setShowAddModal(false);
-    setSelectedContact(null); 
+    setSelectedContact(null);
   };
 
    const handleAddContact = (newContact) => {
     setContacts([...contacts, { id: Date.now(), ...newContact }]);
+    setdbContacts([...dbContacts, newContact]);
+    Alert.alert('Home Contact added successfully');
     setShowAddModal(false);
   };
-
+ 
   const deleteContact = (id) => {
-    setContacts(contacts.filter(contact => contact.id !== id));
+    setdbContacts(dbContacts.filter(contact => contact.id !== id));
   };
+
+  const combineContacts = [...contacts, ...dbContacts];
+
+  const renderItem = ({ item }) => (
+    <View style={styles.contactContainer}>
+      <View style={styles.row}>
+        <Text style={styles.h4}>{item.firstName} {item.name}</Text>
+        <Pressable style={styles.binIcon} onPress={() => deleteContact(item.id)}>
+          <Icon name="trash" size={28} color="red" />
+        </Pressable>
+      </View>
+      <View style={styles.phoneBox}>
+        <Icon name="phone" size={28} color="#fff" style={styles.phoneIcon} />
+        <Text style={styles.h5}>{item.phone}</Text>
+      </View>
+     </View> 
+  )
 
   return (
     <View style={styles.container}>
@@ -32,47 +70,11 @@ const ContactList = ({ navigation }) => {
           />
       </Pressable>
       <Text style={styles.title}>Contacts</Text>
-      <View style={styles.contactContainer}>
-        <View style={styles.row}>
-        <Text style={styles.h4}>Jane Doe</Text>
-        <Pressable style={styles.binIcon} onPress={deleteContact}>
-        <Icon
-          name="trash"
-          size={28}
-          color="red"
-          />
-          </Pressable>
-          </View>
-        <View style={styles.phoneBox}>
-          <Icon 
-            name="phone"
-            size={28}
-            color="#fff" 
-            style={styles.phoneIcon}
-          />
-          <Text style={styles.h5}>0444 111 222</Text>
-        </View>
-      </View>
-      <View style={styles.contactContainer}>
-      <View style={styles.row}>
-        <Text style={styles.h4}>John Doe</Text>
-        <Icon
-          name="trash"
-          size={28}
-          color="red"
-          style={styles.binIcon}
-          />
-          </View>
-        <View style={styles.phoneBox}>
-          <Icon 
-            name="phone"
-            size={28}
-            color="#fff" 
-            style={styles.phoneIcon}
-          />
-          <Text style={styles.h5}>0444 222 333</Text>
-        </View>
-      </View>
+      <FlatList
+        data={combineContacts}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        />
       <Modal
         visible={showAddModal}
         animationType="slide"
@@ -81,7 +83,7 @@ const ContactList = ({ navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-           <ContactForm onSubmit={handleAddContact} onClose={closeModals} />
+           <ContactForm db={db} onSubmit={handleAddContact} onClose={closeModals} />
           </View>
         </View>
       </Modal>
@@ -92,9 +94,10 @@ const ContactList = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'left',
     backgroundColor: '#36454F',
     paddingTop: 40,
+    paddingLeft: 40,
   },
   title: {
     textAlign: 'center',
@@ -138,7 +141,7 @@ const styles = StyleSheet.create({
      textAlign: 'right',
   },
   plusIcon: {
-    position: 'absolute',
+    position: 'center',
     top: 40,
     right: 20,
   },
