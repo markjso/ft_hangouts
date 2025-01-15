@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image, Alert, Pressable } from 'react-native';
-import { addContact, connectToDatabase } from '../db/dbCreate';
+import { addContact } from '../db/dbCreate';
 
-const ContactForm = ({ onClose }) => {
+const ContactForm = ({ db, onSubmit, onClose }) => {
   const [firstName, setFirstName] = useState('');
   const [name, setName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [nickname, setNickname] = useState('');
 
   const handleSubmit = async () => {
-    addContact({ firstName, name, nickname, phone, email });
-    setFirstName('');
-    setName('');
-    setNickname('');
-    setPhone('');
-    setEmail('');
-    onClose();
+    try{
+      const newContact = { firstName, name, nickname, phone, email };
+      await addContact(db, newContact);
+      Alert.alert('Contact added successfully');
+      onSubmit(newContact);
+      onClose();
+    } catch (error) {
+      Alert.alert('Failed to add contact');
+    }
   };
 
   return (
