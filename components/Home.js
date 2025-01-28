@@ -1,20 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, FlatList } from 'react-native';
+import { useNavigation, useTheme } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ContactForm from './AddContact';
+import { getContacts } from '../db/dbCreate';
 
-const ContactList = (navigation) => {
-  const [contacts, setContacts] = useState([
+const defaultContacts =[
     {id: 1, firstName: 'Jane', name: 'Doe', nickname: 'JD', phone: '0444 111 222', email: 'jane@abc.com'},
     {id: 2, firstName: 'John', name: 'Doe', nickname: 'Johnny', phone: '0444 111 333', email: 'john@abc.com'},
-  ]);
+  ];
+
+const ContactList = () => {
+  const navigation = useNavigation();
+  const [contacts, setContacts] = useState(defaultContacts);
   const [showAddModal, setShowAddModal] = useState(false);
+  const { colors } = useTheme();
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const db = await connectToDatabase();
+        const fetchedContacts = await getContacts(db);
+        setContacts(...defaultContacts, ...fetchedContacts);
+      } catch (error) {
+        console.error('Failed to fetch contacts:', error);
+      }
+    };
+
+    fetchContacts();
+  }, []);
 
   const closeModals = () => {
     setShowAddModal(false);
   };
 
   const handleAddContact = (newContact) => {
+    console.log('Adding new contact:', newContact); 
     setContacts([...contacts, { id: Date.now(), ...newContact }]);
     setShowAddModal(false);
   };
@@ -26,7 +47,10 @@ const ContactList = (navigation) => {
   const renderItem = ({ item }) => (
     <View style={styles.contactContainer}>
      <View style={styles.row}>
-    <Pressable onPress={() => navigation.navigate('ViewContact', {name:'Jane'})}> 
+    <Pressable onPress={() => navigation.navigate('View', { title: `${item.firstName} ${item.name}`, 
+      phone: item.phone, 
+      email: item.email, 
+      alias: item.nickname })}> 
         <Text style={styles.h4}>{item.firstName} {item.name} </Text>
     </Pressable>    
         <Pressable style={styles.binIcon} onPress={() => deleteContact(item.id)}>
@@ -74,9 +98,8 @@ const ContactList = (navigation) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'left',
     backgroundColor: '#36454F',
-    paddingTop: 40,
+    paddingTop: 20,
     paddingLeft: 40,
   },
   title: {
@@ -92,7 +115,7 @@ const styles = StyleSheet.create({
   },
   h5: {
     fontSize: 18,
-    color: 'gray',
+    color: '#ddd',
     marginLeft: 10, 
   },
   contactContainer: {
@@ -112,7 +135,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: '#fff', 
     borderRadius: 8, 
-    backgroundColor: '#2C3E50', 
+    backgroundColor: '#455463', 
   },
   phoneIcon: {
     marginRight: 10, 
@@ -121,8 +144,8 @@ const styles = StyleSheet.create({
      textAlign: 'right',
   },
   plusIcon: {
-    position: 'center',
-    top: 40,
+    position: 'left',
+    top: 20,
     right: 20,
   },
   modalOverlay: { 

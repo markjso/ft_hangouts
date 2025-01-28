@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Image, Alert, Pressable } from 'react-native';
-import { addContact } from '../db/dbCreate';
+import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
+import { addContact,  } from '../db/dbCreate';
 
-const ContactForm = ({ db, onSubmit, onClose }) => {
+const ContactForm = ({ onSubmit, onClose }) => {
   const [firstName, setFirstName] = useState('');
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
-  const handleSubmit = async () => {
-    try{
-      const newContact = { firstName, name, nickname, phone, email };
-      await addContact(db, newContact);
-      Alert.alert('Contact added successfully');
-      onSubmit(newContact);
-      onClose();
-    } catch (error) {
-      Alert.alert('Failed to add contact');
-    }
+    const handleSubmit = () => {
+    const newContact = { firstName, name, nickname, phone, email };
+    console.log('New contact:', newContact); // Log the new contact
+    addContact(newContact);
+    onSubmit(newContact); // Ensure onSubmit is called
+    setFirstName("");
+    setName("");
+    setNickname("");
+    setPhone("");
+    setEmail("");
+    onClose();
   };
 
   return (
@@ -47,7 +48,6 @@ const ContactForm = ({ db, onSubmit, onClose }) => {
             placeholder="Enter Alias"
             value={nickname}
             onChangeText={setNickname}
-            required
           />
         </View>
         <View style={styles.row}>
@@ -67,11 +67,13 @@ const ContactForm = ({ db, onSubmit, onClose }) => {
             placeholder="Email Address"
             value={email}
             onChangeText={setEmail}
-            required
           />
         </View>
         <Pressable style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Add Contact</Text>
+        </Pressable>
+         <Pressable style={styles.button} onPress={onClose}>
+          <Text style={styles.buttonText}>Cancel</Text>
         </Pressable>
     </View>
   );
