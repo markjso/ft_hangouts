@@ -2,9 +2,16 @@ import React, { useContext } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import ColorContext from '../context/ColorContext';
 import { Colors } from './Style/Color';
+import { connectToDatabase, updateSingleUserPreference } from '../db/dbCreate';
 
 const Customise = () => {
   const { color, setColor } = useContext(ColorContext);
+
+  const handleColorSelection = async (newColor: string) => {
+    const db = await connectToDatabase()
+    await updateSingleUserPreference(db, "colorPreference", newColor)
+    setColor(newColor)
+  }
 
   return (
     <View style={styles.container}>
@@ -18,7 +25,7 @@ const Customise = () => {
               { backgroundColor: value },
               value === color && styles.selectedBorder,
             ]}
-            onPress={() => setColor(value)}></TouchableOpacity>
+            onPress={() => setColor(value), handleColorSelection(value)}></TouchableOpacity>
         ))}
       </View>
     </View>
