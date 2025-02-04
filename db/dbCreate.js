@@ -120,7 +120,7 @@ export const getContacts = async (db: SQLiteDatabase): Promise<Contact[]> => {
 
 export const updateContact = async (
   db: SQLiteDatabase,
-  updatedContact: Contact
+  updatedContact: Contact,
 ) => {
   const updateQuery = `
     UPDATE Contacts

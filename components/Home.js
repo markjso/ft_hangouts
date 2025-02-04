@@ -1,8 +1,13 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, FlatList } from 'react-native';
-import { useNavigation, useTheme } from '@react-navigation/native';
+import { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, FlatList, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { getLocales } from 'expo-localization';
+import en from '../language/en.json';
+import fr from '../language/fr.json';
+import LanguageContext from '../context/LanguageContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ContactForm from './AddContact';
+import ColorContext from '../context/ColorContext';
 import { getContacts } from '../db/dbCreate';
 
 const defaultContacts =[
@@ -14,7 +19,9 @@ const ContactList = () => {
   const navigation = useNavigation();
   const [contacts, setContacts] = useState(defaultContacts);
   const [showAddModal, setShowAddModal] = useState(false);
-  const { colors } = useTheme();
+  const {color} = useContext(ColorContext);
+  const { language } = useContext(LanguageContext);
+  const locale = language === "fr" ? en : fr;
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -48,13 +55,15 @@ const ContactList = () => {
     <View style={styles.contactContainer}>
      <View style={styles.row}>
     <Pressable onPress={() => navigation.navigate('View', { title: `${item.firstName} ${item.name}`, 
+      firstName: item.firstName,
+      name: item.name,
       phone: item.phone, 
       email: item.email, 
-      alias: item.nickname })}> 
+      nickname: item.nickname })}> 
         <Text style={styles.h4}>{item.firstName} {item.name} </Text>
     </Pressable>    
         <Pressable style={styles.binIcon} onPress={() => deleteContact(item.id)}>
-          <Ionicons name="trash" size={28} color="red" />
+          <Ionicons name="trash" size={28} color={color} />
         </Pressable>
       </View>
       <View style={styles.phoneBox}>
@@ -65,33 +74,33 @@ const ContactList = () => {
   )
 
   return (
-    <View style={styles.container}>
-    <Pressable style={styles.plusIcon} onPress={() => setShowAddModal(true)}>
-        <Ionicons
-          name="add-outline"
-          size={28}
-          color='#fff'
+    <SafeAreaView style={styles.container}>
+      <Pressable style={styles.plusIcon} onPress={() => setShowAddModal(true)}>
+          <Ionicons
+            name="add-outline"
+            size={28}
+            color='#fff'
+            />
+        </Pressable>
+        <Text style={styles.title}>{locale.Home.title}</Text>
+        <FlatList
+          data={contacts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
           />
-      </Pressable>
-      <Text style={styles.title}>Contacts</Text>
-      <FlatList
-        data={contacts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        />
-      <Modal
-        visible={showAddModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeModals}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-           <ContactForm onSubmit={handleAddContact} onClose={closeModals} />
+        <Modal
+          visible={showAddModal}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={closeModals}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+            <ContactForm onSubmit={handleAddContact} onClose={closeModals} />
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </SafeAreaView>
   );
 };
 
@@ -99,13 +108,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#36454F',
-    paddingTop: 20,
-    paddingLeft: 40,
   },
   title: {
     textAlign: 'center',
     fontSize: 22,
     color: '#fff',
+    top: 10, 
     marginBottom: 20, 
   },
   h4: {
@@ -120,6 +128,8 @@ const styles = StyleSheet.create({
   },
   contactContainer: {
     marginBottom: 20, 
+    paddingTop: 20,
+    paddingLeft: 40,
     width: '80%', 
   },
    row: {
@@ -144,20 +154,20 @@ const styles = StyleSheet.create({
      textAlign: 'right',
   },
   plusIcon: {
-    position: 'left',
-    top: 20,
-    right: 20,
-  },
+  position: 'absolute', 
+  top: 10,             
+  right: 10,          
+  zIndex: 1,          
+},
   modalOverlay: { 
     flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
     backgroundColor: '#36454F',
   },
   modalContainer: { 
-    width: '80%', 
-    backgroundColor: '#fff', 
-    padding: 20, 
+    width: '100%', 
+    height: '100%',
+    backgroundColor: '#36454F', 
+    padding: 10, 
     borderRadius: 8,
   },
 });

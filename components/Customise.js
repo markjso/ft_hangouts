@@ -2,20 +2,18 @@ import React, { useContext } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import ColorContext from '../context/ColorContext';
 import { Colors } from './Style/Color';
-import { connectToDatabase, updateSingleUserPreference } from '../db/dbCreate';
+import LanguageContext from '../context/LanguageContext';
+import en from '../language/en.json';
+import fr from '../language/fr.json';
 
 const Customise = () => {
   const { color, setColor } = useContext(ColorContext);
-
-  const handleColorSelection = async (newColor: string) => {
-    const db = await connectToDatabase()
-    await updateSingleUserPreference(db, "colorPreference", newColor)
-    setColor(newColor)
-  }
+  const { language, setLanguage } = useContext(LanguageContext);
+  const locale = language === "fr" ? en : fr;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.h4}> Choose your header colour </Text>
+      <Text style={styles.h4}>{locale.Customise.title}</Text>
       <View style={styles.colorsContainer}>
         {Object.entries(Colors.choices).map(([key, value]) => (
           <TouchableOpacity
@@ -25,7 +23,7 @@ const Customise = () => {
               { backgroundColor: value },
               value === color && styles.selectedBorder,
             ]}
-            onPress={() => setColor(value), handleColorSelection(value)}></TouchableOpacity>
+            onPress={() => setColor(value)}></TouchableOpacity>
         ))}
       </View>
     </View>
@@ -51,7 +49,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     backgroundColor: '#36454F',
-    justifyContent: 'left',
+    justifyContent: 'flex-start',
     paddingTop: 20,
   },
   colorBox: {

@@ -1,0 +1,27 @@
+{
+    "Home": {
+        "title": "Contacts"
+    },
+    "AddContact": {
+        "title": "Add Contacts",
+        "submitButton": "Submit",
+        "cancelButton": "Cancel",
+        "inputPlaceholders": {
+            "firstName": "First Name",
+            "name": "Last Name",
+            "nickname": "nickname",
+            "phone": "phone",
+            "email": "email"
+        }
+    },
+    "View": {
+      "editLink": "Edit",
+        "nickname": "nickname",
+        "phone": "mobile",
+        "email": "email",
+        "send": "Send Message"
+    },
+    "Customise": {
+        "title": "Choose your header colour"
+    }
+}

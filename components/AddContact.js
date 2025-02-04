@@ -1,19 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
-import { addContact,  } from '../db/dbCreate';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, StyleSheet, Pressable, SafeAreaView, } from 'react-native';
+import ColorContext from '../context/ColorContext';
+import LanguageContext from '../context/LanguageContext';
+import en from '../language/en.json';
+import fr from '../language/fr.json';
+import { addContact, updateContact } from '../db/dbCreate';
 
-const ContactForm = ({ onSubmit, onClose }) => {
-  const [firstName, setFirstName] = useState('');
-  const [name, setName] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
+  const [firstName, setFirstName] = useState(initialContact?.firstName || '');
+  const [name, setName] = useState(initialContact?.name || '');
+  const [nickname, setNickname] = useState(initialContact?.nickname || '');
+  const [phone, setPhone] = useState(initialContact?.phone || '');
+  const [email, setEmail] = useState(initialContact?.email || '');
+  const {color} = useContext(ColorContext);
+  const { language } = useContext(LanguageContext);
+  const locale = language === "fr" ? en : fr;
 
     const handleSubmit = () => {
-    const newContact = { firstName, name, nickname, phone, email };
-    console.log('New contact:', newContact); // Log the new contact
-    addContact(newContact);
-    onSubmit(newContact); // Ensure onSubmit is called
+    const contactData = { firstName, name, nickname, phone, email };
+    if (initialContact) {
+      updateContact(contactData); 
+    } else {
+      addContact(contactData); 
+    }
+    onSubmit(contactData); 
     setFirstName("");
     setName("");
     setNickname("");
@@ -23,69 +33,83 @@ const ContactForm = ({ onSubmit, onClose }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.row}>
-          <TextInput
-            style={styles.input}
-            placeholder="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-            required
-          />
-        </View>
+    <SafeAreaView style={styles.container}>
+    <Text style={styles.title}>{initialContact ? "Edit Contact" : locale.AddContact.title}</Text>
         <View style={styles.row}>
-          <TextInput
-            style={styles.input}
-            placeholder="Last Name"
-            value={name}
-            onChangeText={setName}
-            required
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Alias"
-            value={nickname}
-            onChangeText={setNickname}
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            type="tel"
-            style={styles.input}
-            placeholder="Phone Number"
-            value={phone}
-            onChangeText={setPhone}
-            required
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            type="email"
-            style={styles.input}
-            placeholder="Email Address"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-        <Pressable style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Add Contact</Text>
-        </Pressable>
-         <Pressable style={styles.button} onPress={onClose}>
-          <Text style={styles.buttonText}>Cancel</Text>
-        </Pressable>
-    </View>
+            <TextInput
+              style={styles.input}
+              placeholder={locale.AddContact.inputPlaceholders.firstName}
+              value={firstName}
+              onChangeText={setFirstName}
+              required
+            />
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.input}
+              placeholder={locale.AddContact.inputPlaceholders.name}
+              value={name}
+              autoCapitalize='words'
+              onChangeText={setName}
+              required
+            />
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.input}
+              placeholder={locale.AddContact.inputPlaceholders.nickname}
+              autoCapitalize='none'
+              value={nickname}
+              onChangeText={setNickname}
+            />
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              type="tel"
+              keyboardType='numeric'
+              style={styles.input}
+              placeholder={locale.AddContact.inputPlaceholders.phone}
+              value={phone}
+              onChangeText={setPhone}
+              required
+            />
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              type="email"
+              keyboardType='email-address'
+              autoCapitalize='none'
+              autoCorrect={false}
+              style={styles.input}
+              placeholder={locale.AddContact.inputPlaceholders.email}
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+                <Pressable style={[styles.button, { backgroundColor: color }]} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>{locale.AddContact.submitButton}</Text>
+          </Pressable>
+          <Pressable style={[styles.button, { backgroundColor: color }]} onPress={onClose}>
+            <Text style={styles.buttonText}>{locale.AddContact.cancelButton}</Text>
+          </Pressable>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
 	container: {
-    justifyContent: 'center',
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-    padding: 20
+    backgroundColor: '#36454F',
+    padding: 10,
 	},
+  title: {
+    textAlign: 'center',
+    fontSize: 22,
+    color: '#fff',
+    top: 10, 
+    marginBottom: 20, 
+  },
 	input: {
 		width: '100%',
     padding: 20,
@@ -94,14 +118,14 @@ const styles = StyleSheet.create({
 	},
   row: {
     width: '100%',
-    marginBottom: 15, // Space between each input
+    marginBottom: 2, // Space between each input
   },
   button: {
-    backgroundColor: '#007AFF', 
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginTop: 10,
     alignItems: 'center',
+    borderRadius: 10,
     width: 200,
   },
   buttonText: {

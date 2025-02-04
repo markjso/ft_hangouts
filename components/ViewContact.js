@@ -1,26 +1,51 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, Pressable , Modal} from 'react-native';
+import ContactForm from './AddContact';
+import en from '../language/en.json';
+import fr from '../language/fr.json';
+import LanguageContext from '../context/LanguageContext';
 
-const ViewContact = ({route}) => {
-  const { phone, email, alias, title } = route.params || {};
+
+const ViewContact = ({route, navigation}) => {
+  const { firstName, name, nickname, phone, email, title } = route.params || {};
+  const [showEditModal, setShowEditModal] = useState(false);
+  const { language } = useContext(LanguageContext);
+  const locale = language === "fr" ? en : fr;
 
   return ( 
     <View style={styles.container}>
-      <Pressable style={styles.skillsLink} onPress={() => navigation.navigate('Edit', {user})}>
-        <Text style={styles.link}>Edit {'>'}</Text>
+      <Pressable style={styles.skillsLink} onPress={() => setShowEditModal(true)}>
+        <Text style={styles.link}>{locale.View.editLink} ></Text>
       </Pressable>
       <View style={styles.phoneBox}>
-        <Text style = {styles.h6}>alias</Text>
-        <Text style={styles.h5}>{alias}</Text>
+        <Text style = {styles.h6}>{locale.View.nickname}</Text>
+        <Text style={styles.h5}>{nickname}</Text>
       </View>
       <View style={styles.phoneBox}>
-        <Text style = {styles.h6}>mobile</Text>
+        <Text style = {styles.h6}>{locale.View.phone}</Text>
         <Text style={styles.h5}>{phone}</Text>
       </View>
       <View style={styles.phoneBox}>
-        <Text style = {styles.h6}>email</Text>
+        <Text style = {styles.h6}>{locale.View.email}</Text>
         <Text style={styles.h5}>{email}</Text>
       </View>
+     <Pressable style={styles.phoneBox} onPress={() => navigation.navigate('Messages', { title: `${firstName} ${name}`})}>
+        <Text style = {styles.h6}>{locale.View.send}</Text>
+      </Pressable>
+      <Modal 
+        visible={showEditModal} 
+        animationType="slide" 
+        transparent={false}>
+        <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+            <ContactForm
+              initialContact={{ firstName, name, nickname, phone, email, title }}
+              onSubmit={() => setShowEditModal(false)}
+              onClose={() => setShowEditModal(false)}
+            />
+            </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -41,16 +66,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#ddd',
     marginLeft: 10, 
-  },
-  contactContainer: {
-    marginBottom: 20, 
-    width: '80%', 
-  },
-   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
   },
   phoneBox: {
     flexDirection: 'column',
@@ -73,24 +88,15 @@ const styles = StyleSheet.create({
     top: 10,
     right: 20,
   },
-  binIcon: {
-     textAlign: 'right',
-  },
-  plusIcon: {
-    position: 'left',
-    top: 20,
-    right: 20,
-  },
-  modalOverlay: { 
+   modalOverlay: { 
     flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
     backgroundColor: '#36454F',
   },
   modalContainer: { 
-    width: '80%', 
-    backgroundColor: '#fff', 
-    padding: 20, 
+    width: '100%', 
+    height: '100%',
+    backgroundColor: '#36454F', 
+    padding: 10, 
     borderRadius: 8,
   },
 });

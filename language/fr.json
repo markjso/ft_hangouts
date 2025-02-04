@@ -1,0 +1,27 @@
+{
+    "Home": {
+        "title": "Informations de contact"
+    },
+    "AddContact": {
+        "title": "Ajouter un contact",
+        "submitButton": "Soumettre",
+        "cancelButton": "Annuler",
+        "inputPlaceholders": {
+            "firstName": "prénom",
+            "name": "nom de famille",
+            "nickname": "surnom",
+            "phone": "portable",
+            "email": "email"
+        }
+    },
+    "View": {
+      "editLink": "Modifier",
+        "nickname": "surnom",
+        "phone": "portable",
+        "email": "email",
+        "send": "Envoyer un Message"
+    },
+    "Customise": {
+        "title": "Choisissez la couleur de votre en-tête"
+    }
+}
