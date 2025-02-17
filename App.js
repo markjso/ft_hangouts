@@ -4,8 +4,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HeaderButton } from '@react-navigation/elements';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useCallback, useEffect, useContext } from "react";
-import { Image } from 'react-native';
-import ContactForm from './components/AddContact';
+import { Image, Alert, StyleSheet, View, Text } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import AddContact from './components/AddContact';
 import { ColorProvider} from './context/ColorContext';
 import ContactList from './components/Home';
 import ViewContact from './components/ViewContact';
@@ -16,13 +17,14 @@ import LanguageContext from './context/LanguageContext';
 import { LanguageProvider} from './context/LanguageContext';
 import en from './language/en.json';
 import fr from './language/fr.json';
-import { createTables, connectToDatabase } from './db/dbCreate';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function HomeTabs() {
   const {color} = useContext(ColorContext);
+  const { language } = useContext(LanguageContext);
+  const locale = language === "en" ? en : fr;
 
   return (
     <Tab.Navigator>
@@ -43,7 +45,7 @@ function HomeTabs() {
       }}
       />
       <Tab.Screen name="Customise" component={ChangeColor}
-      options={{ title: 'Customise', 
+      options={{ title: locale.Customise.pageTitle, 
       headerStyle: {
           backgroundColor:color, 
         },
@@ -92,24 +94,27 @@ function ContactsStack() {
           name="Home"
           component={ContactList}
           options={{
+            title: "",
             headerRight: () => (
-              <>
-              <HeaderButton onPress={() => setLanguage('en')}></HeaderButton>
+              <View style={styles.iconContainer}>
+              <HeaderButton onPress={() => setLanguage('en')}>
                 <Image source={require('./assets/english.png')} 
-                style={{width: 40, height: 40}} 
+                style={styles.iconEn} 
                 />
-              <HeaderButton onPress={() => setLanguage('fr')}></HeaderButton>
+              </HeaderButton>
+              <HeaderButton onPress={() => setLanguage('fr')}>
                 <Image source={require('./assets/france.png')} 
-                style={{width: 50, height: 50}} 
+                style={styles.iconFr} 
                 />
-              </>
+              </HeaderButton>
+              </View>
+              
             ),
-            title: 'ft_hangouts', unmountOnBlur: true
             }}
           />
         <Stack.Screen
           name="Add Contact"
-          component={ContactForm}
+          component={AddContact}
           options={{headerShown: false}}
           />
         <Stack.Screen
@@ -126,13 +131,31 @@ function ContactsStack() {
   );
 }
 
+const styles = StyleSheet.create({
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 5,
+  },
+  iconEn: {
+    width: 40,
+    height: 40,
+  },
+  iconFr: {
+    width: 50,
+    height: 50,
+    marginHorizontal: -5,
+    marginVertical: -10,
+  }
+});
+
 export default function App() {
   const loadData = useCallback(async () => {
   try {
     const db = await connectToDatabase()
     await createTables(db)
   } catch (error) {
-    console.error(error)
+    Alert.alert("can't connect to db", error)
   }
 }, [])
 
@@ -140,14 +163,14 @@ useEffect(() => {
   loadData()
 }, [loadData])
 
-
-
 return (
   <LanguageProvider>
     <ColorProvider>
+    <SafeAreaProvider>
       <NavigationContainer>
           < HomeTabs/>
       </NavigationContainer>
+      </SafeAreaProvider>
     </ColorProvider>
   </LanguageProvider>
   );
