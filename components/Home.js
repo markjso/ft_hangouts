@@ -1,12 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, SafeAreaView, Alert, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import en from '../language/en.json';
-import fr from '../language/fr.json';
-import LanguageContext from '../context/LanguageContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ContactForm from './AddContact';
-import ColorContext from '../context/ColorContext';
 import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
 
 const initialiseDB = async (db) => {
@@ -18,7 +14,7 @@ const initialiseDB = async (db) => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         firstName TEXT,
         name TEXT,
-        nickname,
+        nickname TEXT,
         phone TEXT,
         email TEXT);
         `
@@ -28,11 +24,6 @@ const initialiseDB = async (db) => {
         console.log("Error in connecting: ", error);
     }
 };
-
-const defaultContacts = [
-    {id: 1, firstName: 'Jane', name: 'Doe', nickname: 'JD', phone: '0444 111 222', email: 'jane@abc.com'},
-    {id: 2, firstName: 'John', name: 'Doe', nickname: 'Johnny', phone: '0444 111 333', email: 'john@abc.com'},
-  ];
 
   export default function ContactsList(){
     return (
@@ -45,16 +36,13 @@ const defaultContacts = [
 const ListContacts = () => {
   const db = useSQLiteContext();
   const navigation = useNavigation();
-  const [contacts, setContacts] = useState(defaultContacts);
+  const [contacts, setContacts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const {color} = useContext(ColorContext);
-  const { language } = useContext(LanguageContext);
-  const locale = language === "en" ? en : fr;
 
   async function fetchContacts() {
     const result = await db.getAllAsync("SELECT * FROM contactsTable");
     setContacts(result);
-    conole.log("Contacts fetched", result);
+    console.log("Contacts fetched", result);
   }
 
   useEffect(() => {
@@ -72,11 +60,11 @@ const ListContacts = () => {
       Alert.alert("Contact added");
   }
 
-  const handleDeleteContact = async (contactId: number) => {
+  const handleDeleteContact = async (id) => {
     try {
-        const db = await connectToDatabase();
-        await deleteContact(db, contactId);
-        setContacts(contacts.filter(contact => contact.id !== contactId));
+        await db.runAsync("DELETE FROM contactsTable WHERE id =?", [id]);
+        setContacts(contacts.filter(contact => contact.id != id));
+        Alert.alert("Contact deleted");
     } catch (error) {
         console.error("Error deleting contact:", error);
     }
@@ -94,7 +82,7 @@ const ListContacts = () => {
         <Text style={styles.h4}>{item.firstName} {item.name} </Text>
     </Pressable>    
         <Pressable style={styles.binIcon} onPress={() => handleDeleteContact(item.id)}>
-          <Ionicons name="trash" size={28} color={color} />
+          <Ionicons name="trash" size={28} color={'red'} />
         </Pressable>
       </View>
       <View style={styles.phoneBox}>
@@ -113,7 +101,7 @@ const ListContacts = () => {
             color='#fff'
             />
         </Pressable>
-        <Text style={styles.title}>{locale.Home.title}</Text>
+        <Text style={styles.title}>Contacts</Text>
         <FlatList
           data={contacts}
           keyExtractor={(item) => item.phone.toString()}
