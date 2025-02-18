@@ -1,29 +1,35 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, SafeAreaView, } from 'react-native';
-import ColorContext from '../context/ColorContext';
-import LanguageContext from '../context/LanguageContext';
-import en from '../language/en.json';
-import fr from '../language/fr.json';
-import { addContact, updateContact } from '../db/dbCreate';
+import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
 
-const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
-  const [firstName, setFirstName] = useState(initialContact?.firstName || '');
-  const [name, setName] = useState(initialContact?.name || '');
-  const [nickname, setNickname] = useState(initialContact?.nickname || '');
-  const [phone, setPhone] = useState(initialContact?.phone || '');
-  const [email, setEmail] = useState(initialContact?.email || '');
-  const {color} = useContext(ColorContext);
-  const { language } = useContext(LanguageContext);
-  const locale = language === "fr" ? en : fr;
 
-    const handleSubmit = () => {
-    const contactData = { firstName, name, nickname, phone, email };
-    if (initialContact) {
-      updateContact(contactData); 
+
+export default function AddContact({route}) {
+  const {id} = route.params;
+  return(
+    <SQLiteProvider databaseName="ft_hangouts.db">
+      <ContactForm id={id} />
+    </SQLiteProvider>
+  )
+}
+
+export function ContactForm ({ onSubmit, onClose}) {
+  const contactID = id.id;
+  const db = useSQLiteContext();
+  const [firstName, setFirstName] = useState('');
+  const [name, setName] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState( '');
+
+    const handleSubmit = async (id) => {
+    const newContact = { firstName, name, nickname, phone, email };
+    if (contactID) {
+      updateContact(newContact); 
     } else {
-      addContact(contactData); 
+      await onSubmit(newContact);
     }
-    onSubmit(contactData); 
+
     setFirstName("");
     setName("");
     setNickname("");
@@ -34,11 +40,11 @@ const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-    <Text style={styles.title}>{initialContact ? "Edit Contact" : locale.AddContact.title}</Text>
+    <Text style={styles.title}>{initialContact ? AddContact : EditContact}</Text>
         <View style={styles.row}>
             <TextInput
               style={styles.input}
-              placeholder={locale.AddContact.inputPlaceholders.firstName}
+              placeholder="first Name"
               value={firstName}
               onChangeText={setFirstName}
               required
@@ -47,7 +53,7 @@ const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
           <View style={styles.row}>
             <TextInput
               style={styles.input}
-              placeholder={locale.AddContact.inputPlaceholders.name}
+              placeholder="Last Name"
               value={name}
               autoCapitalize='words'
               onChangeText={setName}
@@ -57,7 +63,7 @@ const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
           <View style={styles.row}>
             <TextInput
               style={styles.input}
-              placeholder={locale.AddContact.inputPlaceholders.nickname}
+              placeholder="nickname"
               autoCapitalize='none'
               value={nickname}
               onChangeText={setNickname}
@@ -68,7 +74,7 @@ const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
               type="tel"
               keyboardType='numeric'
               style={styles.input}
-              placeholder={locale.AddContact.inputPlaceholders.phone}
+              placeholder="Phone No"
               value={phone}
               onChangeText={setPhone}
               required
@@ -81,20 +87,20 @@ const ContactForm = ({ onSubmit, onClose, initialContact = null }) => {
               autoCapitalize='none'
               autoCorrect={false}
               style={styles.input}
-              placeholder={locale.AddContact.inputPlaceholders.email}
+              placeholder="Email"
               value={email}
               onChangeText={setEmail}
             />
           </View>
-                <Pressable style={[styles.button, { backgroundColor: color }]} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>{locale.AddContact.submitButton}</Text>
-          </Pressable>
-          <Pressable style={[styles.button, { backgroundColor: color }]} onPress={onClose}>
-            <Text style={styles.buttonText}>{locale.AddContact.cancelButton}</Text>
-          </Pressable>
+            <Pressable style={[styles.button, { backgroundColor: 'red' }]} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Submit</Text>
+            </Pressable>
+            <Pressable style={[styles.button, { backgroundColor: 'red' }]} onPress={onClose}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </Pressable>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
 	container: {
@@ -134,5 +140,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default ContactForm;
