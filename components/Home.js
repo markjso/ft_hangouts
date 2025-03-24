@@ -3,47 +3,20 @@ import { View, Text, StyleSheet, Pressable, Modal, SafeAreaView, Alert, FlatList
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ContactForm from './AddContact';
-import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
+import en from '../language/en.json';
+import fr from '../language/fr.json';
+import LanguageContext from '../context/LanguageContext';
+import ColorContext from '../context/ColorContext';
+import { useContacts } from '../context/ContactContext';
 
-const initialiseDB = async (db) => {
-    try {
-        await db.execAsync(
-        `
-        PRAGMA journal_mode = WAL;
-        CREATE TABLE IF NOT EXISTS contactsTable (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        firstName TEXT,
-        name TEXT,
-        nickname TEXT,
-        phone TEXT,
-        email TEXT);
-        `
-        );
-    console.log("Database connected");
-    } catch (error) {
-        console.log("Error in connecting: ", error);
-    }
-};
-
-  export default function ContactsList(){
-    return (
-      <SQLiteProvider databaseName="ft_hangouts.db" on onInit={initialiseDB}>
-        <ListContacts />
-      </SQLiteProvider>
-    );
-  }
-
-const ListContacts = () => {
-  const db = useSQLiteContext();
+const ContactsList = () => {
+  const { contacts, deleteContact, fetchContacts, addContact } = useContacts();
   const navigation = useNavigation();
-  const [contacts, setContacts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-
-  async function fetchContacts() {
-    const result = await db.getAllAsync("SELECT * FROM contactsTable");
-    setContacts(result);
-    console.log("Contacts fetched", result);
-  }
+  const [currentId, setCurrentId] = useState(null);
+  const { language } = useContext(LanguageContext);
+  const locale = language === "en" ? en : fr;
+  const {color} = useContext(ColorContext);
 
   useEffect(() => {
     fetchContacts();
@@ -51,29 +24,30 @@ const ListContacts = () => {
 
   const closeModals = () => {
     setShowAddModal(false);
+    setCurrentId(null);
   };
 
-  const handleAddContact = async () => {
-    await db.runAsync("INSERT into contactsTable (firstName, name, nickname, phone, email) values (?, ?, ?, ?, ?)", [firstName, name, nickname, phone, email]);
-    setContacts((prevContacts) => [...prevContacts, savedContact]);
-    setShowAddModal(false);
+  const handleAddContact = async (contact) => {
+    console.log('current id is : ', currentId)
+      if (currentId) {
+        await updateContact(currentId, contact);
+      } else {
+        await addContact(contact);
+      }
+      fetchContacts();
+      closeModals();
       Alert.alert("Contact added");
-  }
+  };
 
-  const handleDeleteContact = async (id) => {
-    try {
-        await db.runAsync("DELETE FROM contactsTable WHERE id =?", [id]);
-        setContacts(contacts.filter(contact => contact.id != id));
-        Alert.alert("Contact deleted");
-    } catch (error) {
-        console.error("Error deleting contact:", error);
-    }
+  const removeContact = async (id) => {
+        await deleteContact(id);
 };
 
   const renderItem = ({ item }) => (
     <View style={styles.contactContainer}>
      <View style={styles.row}>
     <Pressable onPress={() => navigation.navigate('View', { title: `${item.firstName} ${item.name}`, 
+      id: item.id,
       firstName: item.firstName,
       name: item.name,
       phone: item.phone, 
@@ -81,8 +55,8 @@ const ListContacts = () => {
       nickname: item.nickname })}> 
         <Text style={styles.h4}>{item.firstName} {item.name} </Text>
     </Pressable>    
-        <Pressable style={styles.binIcon} onPress={() => handleDeleteContact(item.id)}>
-          <Ionicons name="trash" size={28} color={'red'} />
+        <Pressable style={styles.binIcon} onPress={() => removeContact(item.id)}>
+          <Ionicons name="trash" size={28} color={color} />
         </Pressable>
       </View>
       <View style={styles.phoneBox}>
@@ -94,14 +68,17 @@ const ListContacts = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Pressable style={styles.plusIcon} onPress={() => setShowAddModal(true)}>
+      <Pressable style={styles.plusIcon} onPress={() =>{ 
+        setCurrentId(null)
+        setShowAddModal(true)
+      }}>
           <Ionicons
             name="add-outline"
             size={28}
             color='#fff'
             />
         </Pressable>
-        <Text style={styles.title}>Contacts</Text>
+        <Text style={styles.title}>{locale.Home.title}</Text>
         <FlatList
           data={contacts}
           keyExtractor={(item) => item.phone.toString()}
@@ -115,7 +92,7 @@ const ListContacts = () => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
-            <ContactForm onSubmit={handleAddContact} onClose={closeModals} />
+            <ContactForm onSubmit={handleAddContact} onClose={closeModals} id={currentId} />
             </View>
           </View>
         </Modal>
@@ -130,7 +107,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    fontSize: 22,
+    fontSize: 24,
     color: '#fff',
     top: 10, 
     marginBottom: 20, 
@@ -191,3 +168,4 @@ const styles = StyleSheet.create({
   },
 });
 
+export default ContactsList;
