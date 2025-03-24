@@ -1,53 +1,33 @@
 import { createContext, useState, useEffect } from 'react';
-import {
-  connectToDatabase,
-  createTables,
-  getSingleUserPreference,
-} from "../db/dbCreate";
+import {getSingleUserPreference, updateSingleUserPreference} from '../db/dbCreate';
+import { useSQLiteContext } from 'expo-sqlite';
 
 const defaultLanguageContext = {
-  language: "fr",
+  language: 'en',
   setLanguage: () => {},
 }
 
 const LanguageContext = createContext(defaultLanguageContext);
 
-const getDatabaseLanguage = async (): Promise<string> => {
-  try {
-    const db = await connectToDatabase();
-    await createTables(db); 
-    const languagePreference = await getSingleUserPreference(db, "languagePreference");
-    return languagePreference; 
-  } catch (error) {
-    console.error("Error fetching language from database:", error);
-    return "en"; 
-  }
-};
-
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState("fr");
+  const db = useSQLiteContext();
+  const [language, setLanguage] = useState('en');
 
   useEffect(() => {
   const fetchLanguage = async () => {
-    try {
-      const fetchedLanguage = await getDatabaseLanguage();
-      setLanguage(fetchedLanguage);
-    } catch (error) {
-      console.error("Error fetching Language:", error); 
-    }
+      const languagePreference = await getSingleUserPreference(db, 'languagePreference')
+      if (languagePreference) {
+      setLanguage(languagePreference);
+      console.log("language changed");
+      }
   };
-
   fetchLanguage();
-}, []);
+}, [db]);
 
 const handleChangeLanguage = async (newLanguage) => {
-    try {
-      setLanguage(newLanguage); // Update the state
-      const db = await connectToDatabase();
-      await updateSingleUserPreference(db, "languagePreference", newLanguage); // Save to the database
-    } catch (error) {
-      console.error("Error updating language:", error);
-    }
+      setLanguage(newLanguage); 
+      await updateSingleUserPreference(db, 'languagePreference', newLanguage);
+      console.log("Language updated to", newLanguage);
   };
 
 return (
