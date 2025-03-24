@@ -1,5 +1,5 @@
 export const Colors = {
-    primary: "red",
+    primary: "#d7bfdc",
   
       choices :{
       orange:  "#fa6900",
