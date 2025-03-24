@@ -9,7 +9,7 @@ import fr from '../language/fr.json';
 const Customise = () => {
   const { color, setColor } = useContext(ColorContext);
   const { language, setLanguage } = useContext(LanguageContext);
-  const locale = language === "fr" ? en : fr;
+  const locale = language === "en" ? en : fr;
 
   return (
     <View style={styles.container}>
