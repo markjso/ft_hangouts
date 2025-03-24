@@ -4,6 +4,7 @@
     },
     "AddContact": {
         "title": "Ajouter un contact",
+        "editTitle": "Modifier le contact",
         "submitButton": "Soumettre",
         "cancelButton": "Annuler",
         "inputPlaceholders": {
@@ -21,7 +22,11 @@
         "email": "email",
         "send": "Envoyer un Message"
     },
+    "MessageList": {
+        "title": "le Messages"
+    },
     "Customise": {
+      "pageTitle": "Personnaliser",
         "title": "Choisissez la couleur de votre en-tête"
     }
 }
