@@ -4,6 +4,7 @@
     },
     "AddContact": {
         "title": "Add Contacts",
+        "editTitle": "Edit Contact",
         "submitButton": "Submit",
         "cancelButton": "Cancel",
         "inputPlaceholders": {
@@ -21,7 +22,11 @@
         "email": "email",
         "send": "Send Message"
     },
+    "MessageList": {
+        "title": "Messages"
+    },
     "Customise": {
+      "pageTitle": "Customise",
         "title": "Choose your header colour"
     }
 }
